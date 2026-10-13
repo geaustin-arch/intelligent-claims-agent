@@ -1,0 +1,11 @@
+[project]
+name = "intelligent-claims-agent"
+version = "0.1.0"
+description = "Human-governed claims intake workflow using LangGraph."
+requires-python = ">=3.11"
+dependencies = ["fastapi>=0.110", "uvicorn[standard]>=0.27", "langgraph>=0.2,<2"]
+[project.optional-dependencies]
+test = ["pytest>=8", "httpx>=0.27"]
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]

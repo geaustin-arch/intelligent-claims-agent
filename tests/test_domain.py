@@ -12,6 +12,12 @@ def test_invalid_claim_never_auto_approves():
     a = assess_claim(Claim("c3", -2, "unknown", ""))
     assert a.outcome == "human_review" and len(a.reasons) == 3
 
+def test_non_finite_amount_never_auto_approves():
+    for amount in (float("nan"), float("inf"), float("-inf")):
+        a = assess_claim(Claim("c-nan", amount, "travel", "P-1"))
+        assert a.outcome == "human_review"
+        assert "finite" in a.reasons[0]
+
 def test_langgraph_pauses_and_resumes_for_human_review():
     from claims_agent.graph import resume, submit
     result = submit({"claim_id":"review-1","amount":700,"category":"travel","policy_id":"P-1"}, "review-1")

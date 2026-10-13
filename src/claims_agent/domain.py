@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+import math
 from typing import Literal
 
 @dataclass(frozen=True)
@@ -18,7 +19,8 @@ LIMITS = {"medical": 750.0, "travel": 500.0, "equipment": 300.0}
 
 def assess_claim(claim: Claim) -> Assessment:
     reasons = []
-    if claim.amount <= 0: reasons.append("amount must be positive")
+    if not math.isfinite(claim.amount): reasons.append("amount must be a finite number")
+    elif claim.amount <= 0: reasons.append("amount must be positive")
     if claim.category not in LIMITS: reasons.append("category is not covered by the demo policy")
     if not claim.policy_id.strip(): reasons.append("policy identifier is missing")
     if reasons: return Assessment("human_review", tuple(reasons), .99)

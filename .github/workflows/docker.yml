@@ -22,3 +22,9 @@ jobs:
         run: docker compose logs --no-color
       - if: always()
         run: docker compose down --volumes
+  authenticated-scenario:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - run: python3 scripts/docker_e2e.py

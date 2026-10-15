@@ -126,3 +126,20 @@ permanently deletes local data; use it only to discard a synthetic test dataset.
 The CI smoke checks volume write permissions and survival across container
 recreation; it does not replace an application-consistent backup/restore test.
 Run the documented retention command with `docker compose exec -T app`.
+
+### Authenticated container scenario
+
+Run `python3 scripts/docker_e2e.py` with Docker available. This builds the image,
+uses a uniquely named Compose project and synthetic credentials, and checks
+successful authorized requests plus rejection of missing credentials and missing
+permissions. It recreates the container twice and checks the scenario again;
+Claims resumes a paused review and preserves the final decision, while Knowledge
+preserves authorized evidence and tenant/reader isolation before deletion.
+Assessor repeats its deterministic assessment without invoking a model.
+
+The harness uses the same localhost ports as the regular Compose service; stop
+that service first. It deletes only its own synthetic project volumes on exit.
+Your normal app volume is not used. Private signing keys stay in harness memory
+and stdin; temporary public-key/encryption configuration is deleted on exit.
+These synthetic credentials are exclusively for this isolated check. This test
+is restart validation, not a backup/restore or disaster recovery certification.

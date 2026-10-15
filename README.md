@@ -93,3 +93,36 @@ Before real production use: configure gateway TLS/fleet quotas, managed secrets,
 required branch checks, backup/restore monitoring and recovery objectives. Add a
 transactional outbox and idempotent consumers before introducing external events
 or payments. Notifications, analytics, and a reviewer UI are optional enhancements.
+
+## Local Docker validation
+
+Requires Docker Engine/Desktop with the Compose v2 plugin. From this repository:
+
+```bash
+docker compose config --quiet
+docker compose up --build --wait --wait-timeout 120
+python3 scripts/docker_smoke.py
+docker compose down
+```
+
+The API binds only to `127.0.0.1:8012`. The default configuration deliberately
+has no identity credentials: `/health` succeeds, docs return 404, and protected
+requests return 503. The smoke script expects this unconfigured baseline;
+it does not prove authenticated business operations or storage recovery.
+Existing application tests cover those paths. The `Local Docker` workflow builds
+and runs the actual image with the same Compose settings.
+
+For authenticated local requests, provide `AUTH_ISSUER`, `AUTH_AUDIENCE`, and
+`AUTH_PUBLIC_KEY` (the full RSA PEM) through your shell or a private `.env` file,
+then recreate the container. Use tokens from your configured identity provider.
+Never commit credentials. Model calls remain disabled in this local configuration.
+The container runs as UID 65532 with a read-only root filesystem, a temporary
+`/tmp`, dropped capabilities, and CPU/memory/process limits.
+
+Also set a stable `DATA_ENCRYPTION_KEY` before exercising storage. The named
+`app-data` volume is writable by UID 65532 and survives `docker compose down`.
+Do not scale this SQLite service across hosts. `docker compose down --volumes`
+permanently deletes local data; use it only to discard a synthetic test dataset.
+The CI smoke checks volume write permissions and survival across container
+recreation; it does not replace an application-consistent backup/restore test.
+Run the documented retention command with `docker compose exec -T app`.

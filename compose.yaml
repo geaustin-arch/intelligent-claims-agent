@@ -1,0 +1,32 @@
+services:
+  app:
+    build: .
+    ports:
+      - "127.0.0.1:8012:8000"
+    environment:
+      AUTH_ISSUER: ${AUTH_ISSUER:-}
+      AUTH_AUDIENCE: ${AUTH_AUDIENCE:-}
+      AUTH_PUBLIC_KEY: ${AUTH_PUBLIC_KEY:-}
+      GEMINI_ENABLED: "false"
+      PYTHONDONTWRITEBYTECODE: "1"
+      CLAIMS_DATA_DIR: /data
+      DATA_ENCRYPTION_KEY: ${DATA_ENCRYPTION_KEY:-}
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,mode=1777
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 128
+    mem_limit: 512m
+    cpus: 1.0
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=3)"]
+      interval: 5s
+      timeout: 4s
+      retries: 12
+      start_period: 10s
+    volumes:
+      - app-data:/data
+volumes:
+  app-data:

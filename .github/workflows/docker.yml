@@ -1,0 +1,24 @@
+name: Local Docker
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  container-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - run: docker compose config --quiet
+      - run: docker compose up --build --wait --wait-timeout 120
+      - run: python3 scripts/docker_smoke.py
+      - name: Verify persistent directory is writable by the runtime user
+        run: docker compose exec -T app python -c "from pathlib import Path; p=Path('/data/.volume-smoke'); p.write_text('persisted')"
+      - run: docker compose down
+      - run: docker compose up --wait --wait-timeout 120
+      - name: Verify persistence after container recreation
+        run: docker compose exec -T app python -c "from pathlib import Path; p=Path('/data/.volume-smoke'); assert p.read_text() == 'persisted'; p.unlink()"
+      - run: python3 scripts/docker_smoke.py
+      - if: failure()
+        run: docker compose logs --no-color
+      - if: always()
+        run: docker compose down --volumes
